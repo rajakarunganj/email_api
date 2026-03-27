@@ -4,22 +4,24 @@ import { Resend } from 'resend';
 
 @Injectable()
 export class ContactService {
-  private resend = new Resend(process.env.RESEND_API_KEY);
 
   async sendMail(data: ContactDto) {
     try {
-      // ✅ check ENV (important)
-      if (!process.env.EMAIL_TO) {
-        throw new Error("EMAIL_TO not set in .env");
-      }
-
+      // ✅ check ENV first
       if (!process.env.RESEND_API_KEY) {
-        throw new Error("RESEND_API_KEY not set in .env");
+        throw new Error('RESEND_API_KEY not set');
       }
 
-      await this.resend.emails.send({
+      if (!process.env.EMAIL_TO) {
+        throw new Error('EMAIL_TO not set');
+      }
+
+      // ✅ initialize AFTER env check
+      const resend = new Resend(process.env.RESEND_API_KEY);
+
+      await resend.emails.send({
         from: 'onboarding@resend.dev',
-        to: process.env.EMAIL_TO, // ✅ now safe
+        to: process.env.EMAIL_TO,
         subject: `New Message: ${data.subject}`,
         html: `
           <h2>📩 New Contact Message</h2>
@@ -34,10 +36,10 @@ export class ContactService {
       return { message: 'Message sent successfully ✅' };
 
     } catch (error) {
-      console.error("❌ EMAIL ERROR:", error);
+      console.error('❌ EMAIL ERROR:', error);
 
       throw new InternalServerErrorException(
-        'Failed to send email. Check server logs.'
+        error?.message || 'Failed to send email'
       );
     }
   }

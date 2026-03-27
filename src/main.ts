@@ -26,38 +26,38 @@
 
 
 
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import serverlessExpress from '@vendia/serverless-express';
+  import { NestFactory } from '@nestjs/core';
+  import { AppModule } from './app.module';
+  import { ValidationPipe } from '@nestjs/common';
+  import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+  import serverlessExpress from '@vendia/serverless-express';
 
-let cachedServer;
+  let cachedServer;
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  async function bootstrap() {
+    const app = await NestFactory.create(AppModule);
 
-  app.enableCors();
-  app.useGlobalPipes(new ValidationPipe());
+    app.enableCors();
+    app.useGlobalPipes(new ValidationPipe());
 
-  const config = new DocumentBuilder()
-    .setTitle('Contact API')
-    .setDescription('Portfolio Contact API 🚀')
-    .setVersion('1.0')
-    .build();
+    const config = new DocumentBuilder()
+      .setTitle('Contact API')
+      .setDescription('Portfolio Contact API 🚀')
+      .setVersion('1.0')
+      .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, document);
 
-  await app.init(); // ❗ IMPORTANT (instead of listen)
+    await app.init(); // ❗ IMPORTANT (instead of listen)
 
-  const expressApp = app.getHttpAdapter().getInstance();
-  return serverlessExpress({ app: expressApp });
-}
-
-export default async function handler(req, res) {
-  if (!cachedServer) {
-    cachedServer = await bootstrap();
+    const expressApp = app.getHttpAdapter().getInstance();
+    return serverlessExpress({ app: expressApp });
   }
-  return cachedServer(req, res);
-}
+
+  export default async function handler(req, res) {
+    if (!cachedServer) {
+      cachedServer = await bootstrap();
+    }
+    return cachedServer(req, res);
+  }
